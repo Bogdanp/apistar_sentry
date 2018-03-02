@@ -5,7 +5,7 @@ from apistar.types import ReturnValue
 from raven import Client
 from typing import Any, Callable, Dict, Tuple
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 class Sentry(abc.ABC):  # pragma: no cover
