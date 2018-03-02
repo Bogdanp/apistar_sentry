@@ -24,6 +24,7 @@ setup(
     description="A Sentry component for API Star.",
     long_description="Visit https://github.com/Leadpages/apistar_sentry for more information.",
     packages=[],
+    py_modules=["apistar_sentry"],
     install_requires=[
         "apistar>=0.3,<0.4",
         "raven",
