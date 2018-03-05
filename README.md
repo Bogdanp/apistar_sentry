@@ -34,12 +34,12 @@ SETTINGS.update({
     "SENTRY_DSN": "...",
     "ENVIRONMENT": "prod",
     "BEFORE_REQUEST": [
-        sentry_component.before_request,
+        sentry.before_request,
         # ...
     ],
     "AFTER_REQUEST": [
         # ...
-        sentry_component.after_request,
+        sentry.after_request,
     ]
 })
 
