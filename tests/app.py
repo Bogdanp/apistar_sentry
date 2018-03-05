@@ -1,35 +1,20 @@
-from apistar import Component, Route, hooks
+import apistar_sentry as sentry
+
+from apistar import Component, Route, hooks, http
 from apistar.frameworks.wsgi import WSGIApp as BaseApp
-from apistar_sentry import SentryMixin, make_sentry_component
-
-
-class User:
-    def __init__(self, username):
-        self.username = username
-
-    @classmethod
-    def setup(cls):
-        return User("fake-user")
-
-    @staticmethod
-    def to_dict(user):
-        return {"username": user.username}
-
-
-SentryMixin, Sentry, sentry_before_request, sentry_after_request = make_sentry_component(User, User.to_dict)
+from apistar_sentry import SentryMixin, Sentry
 
 
 class App(BaseApp, SentryMixin):
     pass
 
 
-def root_handler(user: User):
-    return User.to_dict(user)
+def root_handler():
+    return {}
 
 
 COMPONENTS = [
     Component(Sentry, init=Sentry.setup, preload=True),
-    Component(User, init=User.setup),
 ]
 
 ROUTES = [
@@ -41,11 +26,12 @@ SETTINGS = {
     "SENTRY_DSN": "https://fake:user@example.com/test",
     "ENVIRONMENT": "test",
     "BEFORE_REQUEST": [
-        sentry_before_request,
+        sentry.before_request,
+        hooks.check_permissions,
     ],
     "AFTER_REQUEST": [
         hooks.render_response,
-        sentry_after_request,
+        sentry.after_request,
     ],
 }
 

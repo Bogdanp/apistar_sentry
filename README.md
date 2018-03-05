@@ -10,23 +10,12 @@
 
 ## Usage
 
-In `sentry_component.py`:
-
 ``` python
-from apistar_sentry import make_sentry_component
-from user_component import User, user_to_dict
-
-SentryMixin, Sentry, before_request, before_response = make_sentry_component(User, user_to_dict)
-```
-
-In `app.py`:
-
-``` python
-import sentry_component
+import apistar_sentry as sentry
 
 from apistar import Component
 from apistar.frameworks.wsgi import WSGIApp as BaseApp
-from sentry_component import Sentry, SentryMixin
+from apistar_sentry import Sentry, SentryMixin
 
 
 class App(BaseApp, SentryMixin):
