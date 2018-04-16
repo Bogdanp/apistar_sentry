@@ -7,7 +7,7 @@ name = "pypi"
 
 [packages]
 
-apistar = "*"
+apistar = ">=0.4"
 raven = "*"
 
 

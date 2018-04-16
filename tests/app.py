@@ -1,44 +1,23 @@
-import apistar_sentry as sentry
-
-from apistar import Component, Route, hooks, http
-from apistar.frameworks.wsgi import WSGIApp as BaseApp
-from apistar_sentry import SentryMixin, Sentry
+from apistar import App as BaseApp, Route
+from apistar_sentry import SentryComponent, SentryMixin
 
 
-class App(BaseApp, SentryMixin):
+class App(SentryMixin, BaseApp):
     pass
 
 
-def root_handler():
-    return {}
+def index():
+    raise RuntimeError("example")
 
 
 COMPONENTS = [
-    Component(Sentry, init=Sentry.setup, preload=True),
+    SentryComponent("https://fake:user@example.com/test"),
 ]
 
 ROUTES = [
-    Route("/", "GET", root_handler),
+    Route("/", "GET", index),
 ]
-
-SETTINGS = {
-    "VERSION": "0.1.0",
-    "SENTRY_DSN": "https://fake:user@example.com/test",
-    "ENVIRONMENT": "test",
-    "BEFORE_REQUEST": [
-        sentry.before_request,
-        hooks.check_permissions,
-    ],
-    "AFTER_REQUEST": [
-        hooks.render_response,
-        sentry.after_request,
-    ],
-}
 
 
 def create_app():
-    return App(
-        components=COMPONENTS,
-        settings=SETTINGS,
-        routes=ROUTES,
-    )
+    return App(components=COMPONENTS, routes=ROUTES)

@@ -1,56 +1,65 @@
-import typing
+import inspect
 
-from apistar import Settings
-from apistar.interfaces import Auth
-from apistar.types import ReturnValue
+from apistar import Component
 from raven import Client
 
 __version__ = "0.2.0"
 
 
 class Sentry:
-    def __init__(self, settings: Settings) -> None:
-        self.client = Client(
-            settings["SENTRY_DSN"],
-            environment=settings["ENVIRONMENT"],
-            release=settings["VERSION"],
-        )
+    """A simple wrapper around the Raven library for Sentry.
 
-    @classmethod
-    def setup(cls, settings: Settings) -> typing.Optional["Sentry"]:
-        if settings.get("SENTRY_DSN"):
-            return cls(settings)
+    Parameters:
+      sentry_dsn: The sentry connection string.
+      \**sentry_options: Arbitrary options that are passed to the
+        raven client.
+    """
 
-        return None
+    def __init__(self, sentry_dsn: str, **sentry_options) -> None:
+        self.client = Client(sentry_dsn, **sentry_options)
 
-    @classmethod
-    def setup_celery(cls, settings: Settings) -> None:
-        from raven.contrib import celery as raven_celery
-        sentry = cls(settings)
-        raven_celery.register_logger_signal(sentry.client)
-        raven_celery.register_signal(sentry.client)
-
-    def track(self, auth: Auth) -> None:
+    def track_user(self, user: dict) -> None:
+        """Keep track of the current user.
+        """
         self.client.context.activate()
+        self.client.context.merge({"user": user})
 
-        if auth is not None:
-            self.client.context.merge({
-                "user": {
-                    "id": auth.get_user_id(),
-                    "name": auth.get_display_name(),
-                    "authenticated": auth.is_authenticated(),
-                }
-            })
-
-    def clear(self) -> None:
+    def clear_user(self) -> None:
+        """
+        """
         self.client.context.clear()
 
     def capture_exception(self) -> None:
+        """Send exception information to Sentry.
+        """
         self.client.captureException()
 
 
+class SentryComponent(Component):
+    """A component that injects instances of the Sentry wrapper.
+
+    Parameters:
+      sentry_dsn: The sentry connection string.
+      \**sentry_options: Arbitrary options that are passed to the
+        raven client.
+    """
+
+    def __init__(self, sentry_dsn: str, **sentry_options) -> None:
+        self.sentry = Sentry(sentry_dsn, **sentry_options)
+
+    def can_handle_parameter(self, parameter: inspect.Parameter) -> bool:
+        return parameter.annotation is Sentry
+
+    def resolve(self) -> Sentry:
+        return self.sentry
+
+
 class SentryMixin:
-    def exception_handler(self, exc: Exception, sentry: Sentry) -> None:
+    """Mix this into an API Star application to automatically send
+    exceptions to Sentry.
+    """
+
+    def exception_handler(self, exc: Exception, sentry: Sentry = None) -> None:
         try:
             return super().exception_handler(exc)
         except Exception:
@@ -58,17 +67,6 @@ class SentryMixin:
                 try:
                     sentry.capture_exception()
                 finally:
-                    sentry.clear()
+                    sentry.clear_user()
 
             raise
-
-
-def before_request(auth: Auth, sentry: Sentry) -> None:
-    if sentry is not None:
-        sentry.track(auth)
-
-
-def after_request(sentry: Sentry, ret: ReturnValue) -> ReturnValue:
-    if sentry is not None:
-        sentry.clear()
-    return ret

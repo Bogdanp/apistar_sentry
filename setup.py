@@ -22,11 +22,11 @@ setup(
     name="apistar_sentry",
     version=version,
     description="A Sentry component for API Star.",
-    long_description="Visit https://github.com/Leadpages/apistar_sentry for more information.",
+    long_description="Visit https://github.com/Bogdanp/apistar_sentry for more information.",
     packages=[],
     py_modules=["apistar_sentry"],
     install_requires=[
-        "apistar>=0.3,<0.4",
+        "apistar>=0.4",
         "raven",
     ],
     python_requires=">=3.5",

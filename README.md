@@ -11,56 +11,52 @@
 ## Usage
 
 ``` python
-import apistar_sentry as sentry
-
-from apistar import Component
-from apistar.frameworks.wsgi import WSGIApp as BaseApp
-from apistar_sentry import Sentry, SentryMixin
+from apistar import App as BaseApp
+from apistar_sentry import SentryComponent, SentryMixin
 
 
-class App(BaseApp, SentryMixin):
+class App(SentryMixin, BaseApp):
     pass
 
 
 COMPONENTS = [
-    Component(Sentry, init=Sentry.setup, preload=True),
-    # ...
+    SentryComponent("YOUR_DSN_GOES_HERE", environment="example", version="0.1.0"),
 ]
-
-SETTINGS = env.copy()
-SETTINGS.update({
-    # All of these settings are required:
-    "VERSION": "0.1.0",
-    "SENTRY_DSN": "...",
-    "ENVIRONMENT": "prod",
-    "BEFORE_REQUEST": [
-        sentry.before_request,
-        # ...
-    ],
-    "AFTER_REQUEST": [
-        # ...
-        sentry.after_request,
-    ]
-})
 
 ROUTES = [
     # ...
 ]
 
-app = App(
-    components=COMPONENTS,
-    settings=SETTINGS,
-    routes=ROUTES,
-)
+app = App(components=COMPONENTS, routes=ROUTES)
 ```
+
+### Tracking user information
+
+If you have a custom user or account object that can be dependency
+injected, then you can define an `on_request` hook to enrich the
+`Sentry` object with that user's information:
+
+``` python
+class SentryHooks:
+  def on_request(self, account: Account, sentry: Sentry) -> None:
+    sentry.track_user(account.to_dict())
+```
+
 
 ## Authors
 
-`apistar_sentry` was authored at [Leadpages][leadpages].  We welcome
-contributions, and [we're always looking][careers] for more
-engineering talent!
+`apistar_sentry` was originally authored at [Leadpages][leadpages].
+Check out their [careers] page!
+
+
+## License
+
+apistar_sentry is licensed under the MIT License.  Please see
+[LICENSE] for licensing details.
+
 
 [Sentry]: https://getsentry.com
 [API Star]: https://github.com/encode/apistar/
 [leadpages]: https://leadpages.net
 [careers]: https://www.leadpages.net/careers
+[LICENSE]: https://github.com/Bogdanp/apistar_sentry/blob/master/LICENSE
