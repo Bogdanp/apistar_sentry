@@ -2,6 +2,7 @@ import inspect
 
 from apistar import Component
 from raven import Client
+from typing import Optional
 
 __version__ = "0.3.0"
 
@@ -25,7 +26,7 @@ class Sentry:
         self.client.context.merge({"user": user})
 
     def clear_user(self) -> None:
-        """
+        """Clear the current user from the request context.
         """
         self.client.context.clear()
 
@@ -39,13 +40,18 @@ class SentryComponent(Component):
     """A component that injects instances of the Sentry wrapper.
 
     Parameters:
-      sentry_dsn: The sentry connection string.
+      sentry_dsn: The sentry connection string.  If this is None
+        (useful for local development), then a client is not
+        instantiated.
       \**sentry_options: Arbitrary options that are passed to the
         raven client.
     """
 
-    def __init__(self, sentry_dsn: str, **sentry_options) -> None:
-        self.sentry = Sentry(sentry_dsn, **sentry_options)
+    def __init__(self, sentry_dsn: Optional[str] = None, **sentry_options) -> None:
+        if sentry_dsn is not None:
+            self.sentry = Sentry(sentry_dsn, **sentry_options)
+        else:
+            self.sentry = None
 
     def can_handle_parameter(self, parameter: inspect.Parameter) -> bool:
         return parameter.annotation is Sentry

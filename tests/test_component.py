@@ -1,5 +1,6 @@
 import pytest
 
+from apistar_sentry import SentryComponent
 from unittest.mock import patch
 
 
@@ -14,3 +15,10 @@ def test_mixin_captures_exceptions(capture_mock, client):
 
     # And capture_exception should get called
     capture_mock.assert_called_once()
+
+
+def test_component_resolves_to_none_if_not_given_a_dsn():
+    # Given that I don't have a Sentry dsn
+    # When I attempt to resolve the component
+    # Then I should get back None
+    assert SentryComponent(None).resolve() is None
