@@ -1,6 +1,6 @@
 import inspect
 
-from apistar import Component
+from apistar import Component, http
 from raven import Client
 from typing import Optional
 
@@ -65,7 +65,7 @@ class SentryMixin:
     exceptions to Sentry.
     """
 
-    def exception_handler(self, exc: Exception, sentry: Sentry = None) -> None:
+    def exception_handler(self, exc: Exception, sentry: Sentry = None) -> http.Response:
         try:
             return super().exception_handler(exc)
         except Exception:
